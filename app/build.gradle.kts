@@ -1,7 +1,7 @@
 plugins {
-    id("com.android.application")
+    alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.ksp)
     id("com.android.legacy-kapt")
     alias(libs.plugins.hilt)
 }
