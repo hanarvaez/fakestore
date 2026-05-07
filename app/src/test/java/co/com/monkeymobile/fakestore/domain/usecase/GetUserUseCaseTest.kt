@@ -1,30 +1,25 @@
 package co.com.monkeymobile.fakestore.domain.usecase
 
-import co.com.monkeymobile.fakestore.domain.model.Product
-import co.com.monkeymobile.fakestore.domain.model.Rating
-import co.com.monkeymobile.fakestore.domain.repository.UserRepository
 import co.com.monkeymobile.fakestore.domain.model.Name
 import co.com.monkeymobile.fakestore.domain.model.User
+import co.com.monkeymobile.fakestore.domain.repository.UserRepository
+import io.mockk.coEvery
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.Mockito.doReturn
 
-@RunWith(MockitoJUnitRunner::class)
 class GetUserUseCaseTest {
 
-    @Mock
     private lateinit var repository: UserRepository
 
     private lateinit var useCase: GetUserUseCase
 
     @Before
     fun setup() {
+        repository = mockk()
         useCase = GetUserUseCase(repository)
     }
 
@@ -39,7 +34,7 @@ class GetUserUseCaseTest {
             phone = "1234567890",
             v = 0
         )
-        doReturn(Result.success(user)).`when`(repository).getUser(8)
+        coEvery { repository.getUser(8) } returns Result.success(user)
 
         val result = useCase(8)
 
@@ -49,7 +44,7 @@ class GetUserUseCaseTest {
 
     @Test
     fun `invoke returns failure when repository fails`() = runBlocking {
-        doReturn(Result.failure<Any>(Exception("User not found"))).`when`(repository).getUser(8)
+        coEvery { repository.getUser(8) } returns Result.failure(Exception("User not found"))
 
         val result = useCase(8)
 
