@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
     id("com.android.legacy-kapt")
     alias(libs.plugins.hilt)
 }
@@ -12,7 +13,7 @@ android {
     defaultConfig {
         applicationId = "co.com.monkeymobile.fakestore"
         minSdk = 33
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -43,10 +44,10 @@ android {
         compose = true
         buildConfig = true
     }
-    
-    kotlin {
-        jvmToolchain(17)
-    }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
@@ -62,7 +63,7 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
