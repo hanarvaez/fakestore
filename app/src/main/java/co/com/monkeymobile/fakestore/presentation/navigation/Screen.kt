@@ -11,24 +11,26 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(
     val route: String,
-    val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector
+    val title: String? = null,
+    val selectedIcon: ImageVector? = null,
+    val unselectedIcon: ImageVector? = null
 ) {
+    data object Login : Screen(route = "login")
+
     data object Home : Screen(
         route = "home",
         title = "Products",
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home
     )
-    
+
     data object Favorites : Screen(
         route = "favorites",
         title = "Favorites",
         selectedIcon = Icons.Filled.Favorite,
         unselectedIcon = Icons.Outlined.FavoriteBorder
     )
-    
+
     data object Profile : Screen(
         route = "profile",
         title = "Profile",

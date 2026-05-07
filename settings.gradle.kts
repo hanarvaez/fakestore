@@ -7,7 +7,8 @@ pluginManagement {
     }
     plugins {
         id("com.android.application") version "9.2.1"
-        id("org.jetbrains.kotlin.plugin.compose") version "$kotlinVersion"
+        id("org.jetbrains.kotlin.android") version kotlinVersion
+        id("org.jetbrains.kotlin.plugin.compose") version kotlinVersion
     }
 }
 

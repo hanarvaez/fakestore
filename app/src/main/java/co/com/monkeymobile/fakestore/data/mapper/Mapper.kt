@@ -1,6 +1,7 @@
 package co.com.monkeymobile.fakestore.data.mapper
 
 import co.com.monkeymobile.fakestore.data.local.entity.FavoriteEntity
+import co.com.monkeymobile.fakestore.data.local.entity.UserEntity
 import co.com.monkeymobile.fakestore.data.remote.dto.ProductDto
 import co.com.monkeymobile.fakestore.data.remote.dto.UserDto
 import co.com.monkeymobile.fakestore.domain.model.Name
@@ -47,6 +48,27 @@ fun UserDto.toDomain() = User(
     username = username,
     password = password,
     name = Name(name.firstname, name.lastname),
+    phone = phone,
+    v = v
+)
+
+fun UserDto.toEntity() = UserEntity(
+    id = id,
+    email = email,
+    username = username,
+    password = password,
+    firstname = name.firstname,
+    lastname = name.lastname,
+    phone = phone,
+    v = v
+)
+
+fun UserEntity.toDomain() = User(
+    id = id,
+    email = email,
+    username = username,
+    password = password,
+    name = Name(firstname, lastname),
     phone = phone,
     v = v
 )

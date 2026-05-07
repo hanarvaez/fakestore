@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import co.com.monkeymobile.fakestore.data.local.FakeStoreDatabase
 import co.com.monkeymobile.fakestore.data.local.dao.FavoriteDao
+import co.com.monkeymobile.fakestore.data.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,12 +23,20 @@ object DatabaseModule {
             context,
             FakeStoreDatabase::class.java,
             "fakestore_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
     }
 
     @Provides
     @Singleton
     fun provideFavoriteDao(database: FakeStoreDatabase): FavoriteDao {
         return database.favoriteDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserDao(database: FakeStoreDatabase): UserDao {
+        return database.userDao()
     }
 }

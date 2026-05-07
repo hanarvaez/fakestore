@@ -1,6 +1,7 @@
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.application")
     alias(libs.plugins.kotlin.compose)
+    id("com.android.legacy-kapt")
     alias(libs.plugins.hilt)
 }
 
@@ -42,11 +43,10 @@ android {
         compose = true
         buildConfig = true
     }
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    
+    kotlin {
+        jvmToolchain(17)
+    }
 }
 
 dependencies {
@@ -62,10 +62,10 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    annotationProcessor(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
 
     implementation(libs.hilt.android)
-    annotationProcessor(libs.hilt.compiler)
+    kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
     implementation(libs.retrofit)
