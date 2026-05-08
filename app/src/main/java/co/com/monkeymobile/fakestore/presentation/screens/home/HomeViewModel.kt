@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.usecase.GetProductsUseCase
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCase
+import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCaseParams
 import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun toggleFavorite(product: Product) {
-        toggleFavoriteUseCase(product)
+        toggleFavoriteUseCase(ToggleFavoriteUseCaseParams(product))
         loadProducts()
     }
 }
