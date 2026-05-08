@@ -13,17 +13,21 @@ import javax.inject.Inject
 class GetFavoritesUseCase @Inject constructor(
     private val repository: ProductRepository,
     @IoDispatcher val coroutineDispatcher: CoroutineDispatcher
-) : FlowUseCase<NoParams, GetFavoritesUseCaseResult>(
+) : FlowUseCase<GetFavoritesUseCaseParams, GetFavoritesUseCaseResult>(
     coroutineDispatcher
 ) {
 
-    override fun execute(parameters: NoParams): Flow<GetFavoritesUseCaseResult> {
-        return repository.getFavorites()
+    override fun execute(parameters: GetFavoritesUseCaseParams): Flow<GetFavoritesUseCaseResult> {
+        return repository.getFavorites(parameters.userId)
             .map { products ->
                 GetFavoritesUseCaseResult(products = products)
             }
     }
 }
+
+data class GetFavoritesUseCaseParams(
+    val userId: Int
+)
 
 data class GetFavoritesUseCaseResult(
     val products: List<Product>

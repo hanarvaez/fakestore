@@ -21,28 +21,6 @@ fun ProductDto.toDomain(isFavorite: Boolean = false) = Product(
     isFavorite = isFavorite
 )
 
-fun Product.toEntity() = FavoriteEntity(
-    id = id,
-    title = title,
-    price = price,
-    description = description,
-    category = category,
-    image = image,
-    rate = rating.rate,
-    count = rating.count
-)
-
-fun FavoriteEntity.toDomain() = Product(
-    id = id,
-    title = title,
-    price = price,
-    description = description,
-    category = category,
-    image = image,
-    rating = Rating(rate, count),
-    isFavorite = true
-)
-
 fun ProductEntity.toDomain(isFavorite: Boolean = false) = Product(
     id = id,
     title = title,

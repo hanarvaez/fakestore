@@ -13,16 +13,20 @@ import javax.inject.Inject
 class GetProductsUseCase @Inject constructor(
     private val repository: ProductRepository,
     @IoDispatcher val coroutineDispatcher: CoroutineDispatcher
-) : FlowUseCase<NoParams, GetProductsUseCaseResult>(
+) : FlowUseCase<GetProductsUseCaseParams, GetProductsUseCaseResult>(
     coroutineDispatcher
 ) {
 
-    override fun execute(parameters: NoParams): Flow<GetProductsUseCaseResult> {
-        return repository.getProducts().map { products ->
+    override fun execute(parameters: GetProductsUseCaseParams): Flow<GetProductsUseCaseResult> {
+        return repository.getProducts(parameters.userId).map { products ->
             GetProductsUseCaseResult(products = products)
         }
     }
 }
+
+data class GetProductsUseCaseParams(
+    val userId: Int
+)
 
 data class GetProductsUseCaseResult(
     val products: List<Product>

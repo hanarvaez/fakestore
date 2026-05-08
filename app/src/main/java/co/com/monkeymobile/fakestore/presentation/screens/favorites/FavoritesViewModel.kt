@@ -1,9 +1,10 @@
 package co.com.monkeymobile.fakestore.presentation.screens.favorites
 
 import androidx.lifecycle.viewModelScope
+import co.com.monkeymobile.fakestore.di.SessionManager
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.usecase.GetFavoritesUseCase
-import co.com.monkeymobile.fakestore.domain.usecase.NoParams
+import co.com.monkeymobile.fakestore.domain.usecase.GetFavoritesUseCaseParams
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCase
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCaseParams
 import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
@@ -14,7 +15,8 @@ import javax.inject.Inject
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
     private val getFavoritesUseCase: GetFavoritesUseCase,
-    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val sessionManager: SessionManager
 ) : BaseViewModel<FavoritesViewState, FavoritesViewEvent>(
     initialState = FavoritesViewState.Initial
 ) {
@@ -33,7 +35,8 @@ class FavoritesViewModel @Inject constructor(
     private suspend fun loadFavorites() {
         updateUIState(FavoritesViewState.Loading)
 
-        getFavoritesUseCase(NoParams).collect { result ->
+        val userId = sessionManager.getUserId()
+        getFavoritesUseCase(GetFavoritesUseCaseParams(userId)).collect { result ->
             result.onSuccess { useCaseResult ->
                 val products = useCaseResult.products
 
@@ -50,6 +53,7 @@ class FavoritesViewModel @Inject constructor(
     }
 
     private suspend fun removeFavorite(product: Product) {
-        toggleFavoriteUseCase(ToggleFavoriteUseCaseParams(product))
+        val userId = sessionManager.getUserId()
+        toggleFavoriteUseCase(ToggleFavoriteUseCaseParams(product, userId))
     }
 }

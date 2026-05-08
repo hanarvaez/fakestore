@@ -18,10 +18,10 @@ class ToggleFavoriteUseCase @Inject constructor(
     override suspend fun execute(parameters: ToggleFavoriteUseCaseParams): NoResult {
         val product = parameters.product
 
-        if (repository.isFavorite(product.id)) {
-            repository.removeFavorite(product.id)
+        if (repository.isFavorite(product.id, parameters.userId)) {
+            repository.removeFavorite(product.id, parameters.userId)
         } else {
-            repository.addFavorite(product)
+            repository.addFavorite(product, parameters.userId)
         }
 
         return NoResult
@@ -29,5 +29,6 @@ class ToggleFavoriteUseCase @Inject constructor(
 }
 
 data class ToggleFavoriteUseCaseParams(
-    val product: Product
+    val product: Product,
+    val userId: Int
 )

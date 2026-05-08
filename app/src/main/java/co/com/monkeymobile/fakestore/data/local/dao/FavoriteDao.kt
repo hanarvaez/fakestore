@@ -10,27 +10,24 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FavoriteDao {
-    @Query("SELECT * FROM favorites")
-    fun getAllFavorites(): Flow<List<FavoriteEntity>>
-    
-    @Query("SELECT * FROM favorites")
-    suspend fun getAllFavoritesList(): List<FavoriteEntity>
-    
-    @Query("SELECT id FROM favorites")
-    suspend fun getAllFavoriteIds(): List<Int>
-    
-    @Query("SELECT COUNT(*) FROM favorites")
-    fun getFavoritesCount(): Flow<Int>
-    
-    @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE id = :productId)")
-    suspend fun isFavorite(productId: Int): Boolean
-    
+    @Query("SELECT productId FROM favorites WHERE userId = :userId")
+    fun getFavoriteProductIds(userId: Int): Flow<List<Int>>
+
+    @Query("SELECT productId FROM favorites WHERE userId = :userId")
+    suspend fun getFavoriteProductIdsList(userId: Int): List<Int>
+
+    @Query("SELECT COUNT(*) FROM favorites WHERE userId = :userId")
+    fun getFavoritesCount(userId: Int): Flow<Int>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE productId = :productId AND userId = :userId)")
+    suspend fun isFavorite(productId: Int, userId: Int): Boolean
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addFavorite(product: FavoriteEntity)
-    
+    suspend fun addFavorite(favorite: FavoriteEntity)
+
     @Delete
-    suspend fun removeFavorite(product: FavoriteEntity)
-    
-    @Query("DELETE FROM favorites WHERE id = :productId")
-    suspend fun removeFavoriteById(productId: Int)
+    suspend fun removeFavorite(favorite: FavoriteEntity)
+
+    @Query("DELETE FROM favorites WHERE productId = :productId AND userId = :userId")
+    suspend fun removeFavoriteById(productId: Int, userId: Int)
 }

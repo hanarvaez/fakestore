@@ -12,16 +12,20 @@ import javax.inject.Inject
 class GetFavoritesCountUseCase @Inject constructor(
     private val repository: ProductRepository,
     @IoDispatcher val coroutineDispatcher: CoroutineDispatcher
-) : FlowUseCase<NoParams, GetFavoritesCountUseCaseResult>(
+) : FlowUseCase<GetFavoritesCountUseCaseParams, GetFavoritesCountUseCaseResult>(
     coroutineDispatcher
 ) {
 
-    override fun execute(parameters: NoParams): Flow<GetFavoritesCountUseCaseResult> {
-        return repository.getFavoritesCount().map { count ->
+    override fun execute(parameters: GetFavoritesCountUseCaseParams): Flow<GetFavoritesCountUseCaseResult> {
+        return repository.getFavoritesCount(parameters.userId).map { count ->
             GetFavoritesCountUseCaseResult(count = count)
         }
     }
 }
+
+data class GetFavoritesCountUseCaseParams(
+    val userId: Int
+)
 
 data class GetFavoritesCountUseCaseResult(
     val count: Int

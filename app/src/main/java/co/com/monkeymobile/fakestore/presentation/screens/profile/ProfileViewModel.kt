@@ -3,9 +3,9 @@ package co.com.monkeymobile.fakestore.presentation.screens.profile
 import androidx.lifecycle.viewModelScope
 import co.com.monkeymobile.fakestore.di.SessionManager
 import co.com.monkeymobile.fakestore.domain.usecase.GetFavoritesCountUseCase
+import co.com.monkeymobile.fakestore.domain.usecase.GetFavoritesCountUseCaseParams
 import co.com.monkeymobile.fakestore.domain.usecase.GetUserUseCase
 import co.com.monkeymobile.fakestore.domain.usecase.GetUserUseCaseParams
-import co.com.monkeymobile.fakestore.domain.usecase.NoParams
 import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -39,7 +39,7 @@ class ProfileViewModel @Inject constructor(
             .onSuccess { result ->
                 val user = result.user
 
-                getFavoritesCountUseCase(NoParams).collect { countResult ->
+                getFavoritesCountUseCase(GetFavoritesCountUseCaseParams(userId)).collect { countResult ->
                     countResult.onSuccess { countUseCaseResult ->
                         updateUIState(ProfileViewState.Content(user, countUseCaseResult.count))
                     }

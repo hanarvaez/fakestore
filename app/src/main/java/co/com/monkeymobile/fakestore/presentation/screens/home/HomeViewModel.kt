@@ -1,9 +1,10 @@
 package co.com.monkeymobile.fakestore.presentation.screens.home
 
 import androidx.lifecycle.viewModelScope
+import co.com.monkeymobile.fakestore.di.SessionManager
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.usecase.GetProductsUseCase
-import co.com.monkeymobile.fakestore.domain.usecase.NoParams
+import co.com.monkeymobile.fakestore.domain.usecase.GetProductsUseCaseParams
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCase
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCaseParams
 import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
@@ -14,7 +15,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
-    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val sessionManager: SessionManager
 ) : BaseViewModel<HomeViewState, HomeViewEvent>(
     initialState = HomeViewState.Initial
 ) {
@@ -33,7 +35,8 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadProducts() {
         updateUIState(HomeViewState.Loading)
 
-        getProductsUseCase(NoParams).collect { result ->
+        val userId = sessionManager.getUserId()
+        getProductsUseCase(GetProductsUseCaseParams(userId)).collect { result ->
             result.onSuccess { useCaseResult ->
                 updateUIState(HomeViewState.Content(useCaseResult.products))
             }.onFailure { exception ->
@@ -44,6 +47,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun toggleFavorite(product: Product) {
-        toggleFavoriteUseCase(ToggleFavoriteUseCaseParams(product))
+        val userId = sessionManager.getUserId()
+        toggleFavoriteUseCase(ToggleFavoriteUseCaseParams(product, userId))
     }
 }
