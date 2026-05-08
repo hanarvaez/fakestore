@@ -17,15 +17,14 @@ class ProductRepositoryImpl @Inject constructor(
     private val favoriteDao: FavoriteDao
 ) : ProductRepository {
 
-    override suspend fun getProducts(): Result<List<Product>> {
+    override suspend fun getProducts(): List<Product> {
         return try {
             val favoriteIds = favoriteDao.getAllFavoriteIds().toSet()
-            val products = api.getProducts().map { dto ->
+            api.getProducts().map { dto ->
                 dto.toDomain(isFavorite = dto.id in favoriteIds)
             }
-            Result.success(products)
         } catch (e: Exception) {
-            Result.failure(e)
+            throw Exception("Failed to get products: ${e.message}")
         }
     }
 

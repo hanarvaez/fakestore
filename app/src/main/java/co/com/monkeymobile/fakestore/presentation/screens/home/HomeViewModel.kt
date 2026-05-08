@@ -3,6 +3,7 @@ package co.com.monkeymobile.fakestore.presentation.screens.home
 import androidx.lifecycle.viewModelScope
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.usecase.GetProductsUseCase
+import co.com.monkeymobile.fakestore.domain.usecase.NoParams
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCase
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCaseParams
 import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
@@ -32,9 +33,9 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadProducts() {
         updateUIState(HomeViewState.Loading)
 
-        getProductsUseCase()
-            .onSuccess { products ->
-                updateUIState(HomeViewState.Content(products))
+        getProductsUseCase(NoParams)
+            .onSuccess { result ->
+                updateUIState(HomeViewState.Content(result.products))
             }
             .onFailure { exception ->
                 updateUIState(HomeViewState.Error(exception.message ?: "Unknown error"))
