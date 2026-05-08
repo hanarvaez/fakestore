@@ -6,41 +6,46 @@ import co.com.monkeymobile.fakestore.domain.repository.ProductRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 
 class ToggleFavoriteUseCaseTest {
 
     private lateinit var repository: ProductRepository
-
     private lateinit var useCase: ToggleFavoriteUseCase
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
         repository = mockk(relaxed = true)
-        useCase = ToggleFavoriteUseCase(repository)
+        useCase = ToggleFavoriteUseCase(repository, UnconfinedTestDispatcher())
     }
 
     @Test
-    fun `invoke adds favorite when product is not favorite`() = runBlocking {
+    fun `invoke adds favorite when product is not favorite`() = runTest {
+        val userId = 1
         val product = createProduct(1, false)
-        coEvery { repository.isFavorite(1) } returns false
 
-        useCase(product)
+        coEvery { repository.isFavorite(1, userId) } returns false
 
-        coVerify { repository.addFavorite(product) }
+        useCase(ToggleFavoriteUseCaseParams(product, userId))
+
+        coVerify { repository.addFavorite(product, userId) }
     }
 
     @Test
-    fun `invoke removes favorite when product is already favorite`() = runBlocking {
+    fun `invoke removes favorite when product is already favorite`() = runTest {
+        val userId = 1
         val product = createProduct(1, true)
-        coEvery { repository.isFavorite(1) } returns true
 
-        useCase(product)
+        coEvery { repository.isFavorite(1, userId) } returns true
 
-        coVerify { repository.removeFavorite(1) }
+        useCase(ToggleFavoriteUseCaseParams(product, userId))
+
+        coVerify { repository.removeFavorite(1, userId) }
     }
 
     private fun createProduct(id: Int, isFavorite: Boolean) = Product(

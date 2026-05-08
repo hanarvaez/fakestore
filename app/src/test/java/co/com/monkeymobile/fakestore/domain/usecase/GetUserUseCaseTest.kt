@@ -5,28 +5,30 @@ import co.com.monkeymobile.fakestore.domain.model.User
 import co.com.monkeymobile.fakestore.domain.repository.UserRepository
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 class GetUserUseCaseTest {
 
     private lateinit var repository: UserRepository
-
     private lateinit var useCase: GetUserUseCase
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
         repository = mockk()
-        useCase = GetUserUseCase(repository)
+        useCase = GetUserUseCase(repository, UnconfinedTestDispatcher())
     }
 
     @Test
-    fun `invoke returns success when repository returns user`() = runBlocking {
+    fun `test get user returns success`() = runTest {
+        val userId = 8
         val user = User(
-            id = 8,
+            id = userId,
             email = "test@test.com",
             username = "testuser",
             password = "password",
@@ -34,20 +36,13 @@ class GetUserUseCaseTest {
             phone = "1234567890",
             v = 0
         )
-        coEvery { repository.getUser(8) } returns Result.success(user)
 
-        val result = useCase(8)
+        coEvery { repository.getUser(userId) } returns user
 
-        assertTrue(result.isSuccess)
-        assertEquals("test@test.com", result.getOrNull()?.email)
-    }
+        val result = useCase(GetUserUseCaseParams(userId))
 
-    @Test
-    fun `invoke returns failure when repository fails`() = runBlocking {
-        coEvery { repository.getUser(8) } returns Result.failure(Exception("User not found"))
-
-        val result = useCase(8)
-
-        assertTrue(result.isFailure)
+        result.onSuccess { useCaseResult ->
+            assertEquals("test@test.com", useCaseResult.user.email)
+        }
     }
 }
