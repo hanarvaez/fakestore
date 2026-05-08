@@ -19,7 +19,7 @@ sealed class LoginViewState : ViewState {
     }
 }
 
-sealed class LoginViewEvent: ViewEvent {
+sealed class LoginViewEvent : ViewEvent {
 
     data class OnLoginPressed(
         val username: String,
@@ -27,13 +27,4 @@ sealed class LoginViewEvent: ViewEvent {
     ) : LoginViewEvent() {
         override val name: String = "LoginViewEvent.OnLoginPressed"
     }
-
-    data class OnNavigateToHome(val user: User) : LoginViewEvent(){
-        override val name: String = "LoginViewEvent.OnNavigateToHome"
-    }
-}
-
-sealed class LoginEffect {
-    data object NavigateToHome : LoginEffect()
-    data class ShowError(val message: String) : LoginEffect()
 }

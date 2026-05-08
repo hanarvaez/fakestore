@@ -11,24 +11,30 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-abstract class BaseViewModel : ViewModel() {
+abstract class BaseViewModel<State : ViewState, Event : ViewEvent>(
+    private val initialState: State
+) : ViewModel() {
 
-    protected abstract val initialState: ViewState
-
-    protected val _state = MutableStateFlow(initialState)
+    private val _state = MutableStateFlow(initialState)
     val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    protected abstract val _effect: MutableSharedFlow<ViewEvent>
-    val effect = _effect.asSharedFlow()
+    private val _snackbarMessage = MutableSharedFlow<String>()
+    val snackbarMessage = _snackbarMessage.asSharedFlow()
 
-    open suspend fun handleEvent(event: ViewEvent) {
+    open fun handleViewEvent(event: Event) {
         Log.d("ViewEvent", event.name)
     }
 
-    private fun updateState(state: ViewState) {
+    protected fun updateUIState(state: State) {
+        Log.d("ViewState", state.name)
         viewModelScope.launch(Dispatchers.Main) {
-            Log.d("ViewState", state.name)
             _state.emit(state)
+        }
+    }
+
+    protected fun showMessage(message: String) {
+        viewModelScope.launch(Dispatchers.Main) {
+            _snackbarMessage.emit(message)
         }
     }
 }

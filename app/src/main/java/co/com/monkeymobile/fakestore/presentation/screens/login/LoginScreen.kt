@@ -11,7 +11,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -45,11 +44,8 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                is LoginEffect.NavigateToHome -> onNavigateToHome()
-                is LoginEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
-            }
+        viewModel.snackbarMessage.collect { message ->
+            snackbarHostState.showSnackbar(message)
         }
     }
 
@@ -61,7 +57,7 @@ fun LoginScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        when (val currentState = state) {
+        when (state) {
             is LoginViewState.Initial -> {
                 Column(
                     modifier = Modifier
@@ -94,7 +90,14 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { viewModel.handleEvent(LoginViewEvent.OnLoginPressed(username, password)) },
+                        onClick = {
+                            viewModel.handleViewEvent(
+                                LoginViewEvent.OnLoginPressed(
+                                    username,
+                                    password
+                                )
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Login")
@@ -116,28 +119,7 @@ fun LoginScreen(
             }
 
             is LoginViewState.Content -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Welcome ${currentState.user.name.firstname}!",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = { viewModel.handleEvent(LoginViewEvent.OnNavigateToHome(currentState.user)) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Continue")
-                    }
-                }
+                onNavigateToHome()
             }
         }
     }

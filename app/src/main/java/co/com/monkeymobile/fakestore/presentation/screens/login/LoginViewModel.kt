@@ -1,15 +1,10 @@
 package co.com.monkeymobile.fakestore.presentation.screens.login
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.com.monkeymobile.fakestore.di.SessionManager
 import co.com.monkeymobile.fakestore.domain.usecase.ValidateUserUseCase
+import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,42 +12,39 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val validateUserUseCase: ValidateUserUseCase,
     private val sessionManager: SessionManager
-) : ViewModel() {
+) : BaseViewModel<LoginViewState, LoginViewEvent>(
+    initialState = LoginViewState.Initial
+) {
 
-    private val _state = MutableStateFlow<LoginViewState>(LoginViewState.Initial)
-    val state: StateFlow<LoginViewState> = _state.asStateFlow()
+    override fun handleViewEvent(event: LoginViewEvent) {
+        super.handleViewEvent(event)
 
-    private val _effect = MutableSharedFlow<LoginEffect>()
-    val effect = _effect.asSharedFlow()
-
-    fun handleEvent(event: LoginViewEvent) {
-        when (event) {
-            is LoginViewEvent.OnLoginPressed -> login(event.username, event.password)
-            is LoginViewEvent.OnNavigateToHome -> {
-                viewModelScope.launch {
-                    _effect.emit(LoginEffect.NavigateToHome)
-                }
+        viewModelScope.launch {
+            when (event) {
+                is LoginViewEvent.OnLoginPressed -> login(event.username, event.password)
             }
         }
     }
 
-    private fun login(username: String, password: String) {
-        if (username.isBlank() || password.isBlank()) {
+    private suspend fun login(username: String, password: String) {
+        val cleanUsername = username.trim()
+        val cleanPassword = password.trim()
+
+        if (cleanUsername.isBlank() || cleanPassword.isBlank()) {
+            showMessage("Username or password can't be blank")
             return
         }
 
-        viewModelScope.launch {
-            _state.value = LoginViewState.Loading
+        updateUIState(LoginViewState.Loading)
 
-            validateUserUseCase(username, password)
-                .onSuccess { user ->
-                    sessionManager.setUserId(user.id)
-                    _state.value = LoginViewState.Content(user)
-                    _effect.emit(LoginEffect.NavigateToHome)
-                }
-                .onFailure { exception ->
-                    _effect.emit(LoginEffect.ShowError(exception.message ?: "Login failed"))
-                }
-        }
+        validateUserUseCase(cleanUsername, cleanPassword)
+            .onSuccess { user ->
+                sessionManager.setUserId(user.id)
+                updateUIState(LoginViewState.Content(user))
+            }
+            .onFailure { exception ->
+                updateUIState(LoginViewState.Initial)
+                showMessage(exception.message ?: "Login failed")
+            }
     }
 }
