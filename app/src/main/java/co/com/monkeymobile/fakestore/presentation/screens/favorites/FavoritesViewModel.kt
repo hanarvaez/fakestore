@@ -3,6 +3,7 @@ package co.com.monkeymobile.fakestore.presentation.screens.favorites
 import androidx.lifecycle.viewModelScope
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.usecase.GetFavoritesUseCase
+import co.com.monkeymobile.fakestore.domain.usecase.NoParams
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCase
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCaseParams
 import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
@@ -32,11 +33,18 @@ class FavoritesViewModel @Inject constructor(
     private suspend fun loadFavorites() {
         updateUIState(FavoritesViewState.Loading)
 
-        getFavoritesUseCase().collect { products ->
-            if (products.isEmpty()) {
+        getFavoritesUseCase(NoParams).collect { result ->
+            result.onSuccess { useCaseResult ->
+                val products = useCaseResult.products
+
+                if (products.isEmpty()) {
+                    updateUIState(FavoritesViewState.Empty)
+                } else {
+                    updateUIState(FavoritesViewState.Content(products))
+                }
+            }.onFailure { exception ->
                 updateUIState(FavoritesViewState.Empty)
-            } else {
-                updateUIState(FavoritesViewState.Content(products))
+                showMessage(exception.message ?: "Failed to load favorites")
             }
         }
     }
