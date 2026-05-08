@@ -30,7 +30,7 @@ fun FavoritesScreen(
     viewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -53,6 +53,7 @@ fun FavoritesScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 state.products.isEmpty() -> {
                     Text(
                         text = "No favorites yet",
@@ -61,6 +62,7 @@ fun FavoritesScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
                 else -> {
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
@@ -72,9 +74,8 @@ fun FavoritesScreen(
                         ) { product ->
                             ProductCard(
                                 product = product,
-                                onCardClick = {},
+                                onCardClick = { onProductClick(product) },
                                 onFavoriteClick = {
-                                    onProductClick(product)
                                     viewModel.handleIntent(FavoritesIntent.RemoveFavorite(product))
                                 }
                             )
