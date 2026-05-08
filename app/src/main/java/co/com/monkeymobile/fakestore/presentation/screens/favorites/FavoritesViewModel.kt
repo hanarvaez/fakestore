@@ -51,6 +51,5 @@ class FavoritesViewModel @Inject constructor(
 
     private suspend fun removeFavorite(product: Product) {
         toggleFavoriteUseCase(ToggleFavoriteUseCaseParams(product))
-        loadFavorites()
     }
 }

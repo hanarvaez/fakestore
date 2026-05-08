@@ -45,6 +45,5 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun toggleFavorite(product: Product) {
         toggleFavoriteUseCase(ToggleFavoriteUseCaseParams(product))
-        loadProducts()
     }
 }
