@@ -57,16 +57,16 @@ fun LoginScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        when (state) {
-            is LoginViewState.Initial -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            when (state) {
+                is LoginViewState.Initial -> {
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
@@ -103,23 +103,14 @@ fun LoginScreen(
                         Text("Login")
                     }
                 }
-            }
 
-            is LoginViewState.Loading -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
+                is LoginViewState.Loading -> {
                     CircularProgressIndicator()
                 }
-            }
 
-            is LoginViewState.Content -> {
-                onNavigateToHome()
+                is LoginViewState.Content -> {
+                    onNavigateToHome()
+                }
             }
         }
     }
