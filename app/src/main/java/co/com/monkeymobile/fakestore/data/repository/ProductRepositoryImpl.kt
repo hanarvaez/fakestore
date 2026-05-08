@@ -1,6 +1,8 @@
 package co.com.monkeymobile.fakestore.data.repository
 
 import co.com.monkeymobile.fakestore.data.local.dao.FavoriteDao
+import co.com.monkeymobile.fakestore.data.local.dao.ProductDao
+import co.com.monkeymobile.fakestore.data.local.entity.ProductEntity
 import co.com.monkeymobile.fakestore.data.mapper.toDomain
 import co.com.monkeymobile.fakestore.data.mapper.toEntity
 import co.com.monkeymobile.fakestore.data.remote.api.FakeStoreApi
@@ -14,17 +16,36 @@ import javax.inject.Singleton
 @Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val api: FakeStoreApi,
-    private val favoriteDao: FavoriteDao
+    private val favoriteDao: FavoriteDao,
+    private val productDao: ProductDao
 ) : ProductRepository {
 
     override suspend fun getProducts(): List<Product> {
-        return try {
-            val favoriteIds = favoriteDao.getAllFavoriteIds().toSet()
-            api.getProducts().map { dto ->
-                dto.toDomain(isFavorite = dto.id in favoriteIds)
+        val count = productDao.getProductsCount()
+
+        if (count == 0) {
+            val productsFromApi = api.getProducts()
+
+            val entities = productsFromApi.map { dto ->
+                ProductEntity(
+                    id = dto.id,
+                    title = dto.title,
+                    price = dto.price,
+                    description = dto.description,
+                    category = dto.category,
+                    image = dto.image,
+                    rate = dto.rating.rate,
+                    count = dto.rating.count
+                )
             }
-        } catch (e: Exception) {
-            throw Exception("Failed to get products: ${e.message}")
+
+            productDao.insertProducts(entities)
+        }
+
+        val favoriteIds = favoriteDao.getAllFavoriteIds().toSet()
+
+        return productDao.getAllProducts().map { entity ->
+            entity.toDomain(isFavorite = entity.id in favoriteIds)
         }
     }
 

@@ -1,6 +1,7 @@
 package co.com.monkeymobile.fakestore.data.mapper
 
 import co.com.monkeymobile.fakestore.data.local.entity.FavoriteEntity
+import co.com.monkeymobile.fakestore.data.local.entity.ProductEntity
 import co.com.monkeymobile.fakestore.data.local.entity.UserEntity
 import co.com.monkeymobile.fakestore.data.remote.dto.ProductDto
 import co.com.monkeymobile.fakestore.data.remote.dto.UserDto
@@ -40,6 +41,17 @@ fun FavoriteEntity.toDomain() = Product(
     image = image,
     rating = Rating(rate, count),
     isFavorite = true
+)
+
+fun ProductEntity.toDomain(isFavorite: Boolean = false) = Product(
+    id = id,
+    title = title,
+    price = price,
+    description = description,
+    category = category,
+    image = image,
+    rating = Rating(rate, count),
+    isFavorite = isFavorite
 )
 
 fun UserDto.toDomain() = User(
