@@ -24,24 +24,18 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun validateUser(username: String, password: String): Result<User> {
-        return try {
-            val count = userDao.getUsersCount()
+    override suspend fun validateUser(username: String, password: String): User {
+        val count = userDao.getUsersCount()
 
-            if (count == 0) {
-                val users = api.getUsers()
-                val entities = users.map { it.toEntity() }
-                userDao.insertUsers(entities)
-            }
-
-            val userEntity = userDao.validateUser(username, password)
-            if (userEntity != null) {
-                Result.success(userEntity.toDomain())
-            } else {
-                Result.failure(Exception("Invalid username or password"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
+        if (count == 0) {
+            val users = api.getUsers()
+            val entities = users.map { it.toEntity() }
+            userDao.insertUsers(entities)
         }
+
+        val userEntity = userDao.validateUser(username, password)
+            ?: throw Exception("Invalid username or password")
+
+        return userEntity.toDomain()
     }
 }
