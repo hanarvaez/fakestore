@@ -29,7 +29,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,16 +40,24 @@ fun LoginScreen(
     onNavigateToHome: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel<LoginViewModel>()
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collect { message ->
-            snackbarHostState.showSnackbar(message)
-        }
+    LaunchedEffect(
+        viewModel.snackbarMessage,
+        lifecycleOwner
+    ) {
+        viewModel.snackbarMessage
+            .flowWithLifecycle(
+                lifecycle = lifecycleOwner.lifecycle,
+                minActiveState = Lifecycle.State.STARTED
+            ).collect { message ->
+                snackbarHostState.showSnackbar(message)
+            }
     }
 
     Scaffold(

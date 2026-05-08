@@ -36,7 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.flowWithLifecycle
 import co.com.monkeymobile.fakestore.domain.model.User
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,13 +47,21 @@ import co.com.monkeymobile.fakestore.domain.model.User
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel<ProfileViewModel>()
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
-        viewModel.snackbarMessage.collect { message ->
-            snackbarHostState.showSnackbar(message)
-        }
+    LaunchedEffect(
+        viewModel.snackbarMessage,
+        lifecycleOwner
+    ) {
+        viewModel.snackbarMessage
+            .flowWithLifecycle(
+                lifecycle = lifecycleOwner.lifecycle,
+                minActiveState = Lifecycle.State.STARTED
+            ).collect { message ->
+                snackbarHostState.showSnackbar(message)
+            }
     }
 
     Scaffold(
