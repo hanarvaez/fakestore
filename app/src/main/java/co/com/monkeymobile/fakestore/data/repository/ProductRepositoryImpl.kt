@@ -10,7 +10,6 @@ import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,10 +50,10 @@ class ProductRepositoryImpl @Inject constructor(
     }
 
     override fun getFavorites(userId: Int): Flow<List<Product>> {
-        return favoriteDao.getFavoriteProductIds(userId).map { favoriteIds ->
-            val products = productDao.getAllProducts().first()
-            products.filter { it.id in favoriteIds }.map { it.toDomain(isFavorite = true) }
-        }
+        return productDao.getAllProducts()
+            .combine(favoriteDao.getFavoriteProductIds(userId)) { products, favoriteIds ->
+                products.filter { it.id in favoriteIds }.map { it.toDomain(isFavorite = true) }
+            }
     }
 
     override fun getFavoritesCount(userId: Int): Flow<Int> {
