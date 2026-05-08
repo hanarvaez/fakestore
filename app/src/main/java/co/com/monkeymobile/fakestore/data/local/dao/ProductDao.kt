@@ -5,14 +5,15 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import co.com.monkeymobile.fakestore.data.local.entity.ProductEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductDao {
     @Query("SELECT * FROM products")
-    suspend fun getAllProducts(): List<ProductEntity>
+    fun getAllProducts(): Flow<List<ProductEntity>>
 
     @Query("SELECT COUNT(*) FROM products")
-    suspend fun getProductsCount(): Int
+    fun getProductsCount(): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProducts(products: List<ProductEntity>)

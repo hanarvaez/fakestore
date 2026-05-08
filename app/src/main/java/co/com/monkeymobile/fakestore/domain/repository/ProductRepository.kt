@@ -4,7 +4,7 @@ import co.com.monkeymobile.fakestore.domain.model.Product
 import kotlinx.coroutines.flow.Flow
 
 interface ProductRepository {
-    suspend fun getProducts(): List<Product>
+    fun getProducts(): Flow<List<Product>>
     fun getFavorites(): Flow<List<Product>>
     fun getFavoritesCount(): Flow<Int>
     suspend fun addFavorite(product: Product)

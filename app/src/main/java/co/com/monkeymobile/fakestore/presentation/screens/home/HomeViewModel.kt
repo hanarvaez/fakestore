@@ -33,14 +33,14 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadProducts() {
         updateUIState(HomeViewState.Loading)
 
-        getProductsUseCase(NoParams)
-            .onSuccess { result ->
-                updateUIState(HomeViewState.Content(result.products))
-            }
-            .onFailure { exception ->
+        getProductsUseCase(NoParams).collect { result ->
+            result.onSuccess { useCaseResult ->
+                updateUIState(HomeViewState.Content(useCaseResult.products))
+            }.onFailure { exception ->
                 updateUIState(HomeViewState.Error(exception.message ?: "Unknown error"))
                 showMessage(exception.message ?: "Unknown error")
             }
+        }
     }
 
     private suspend fun toggleFavorite(product: Product) {

@@ -9,6 +9,7 @@ import co.com.monkeymobile.fakestore.data.remote.api.FakeStoreApi
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,32 +21,30 @@ class ProductRepositoryImpl @Inject constructor(
     private val productDao: ProductDao
 ) : ProductRepository {
 
-    override suspend fun getProducts(): List<Product> {
-        val count = productDao.getProductsCount()
-
-        if (count == 0) {
-            val productsFromApi = api.getProducts()
-
-            val entities = productsFromApi.map { dto ->
-                ProductEntity(
-                    id = dto.id,
-                    title = dto.title,
-                    price = dto.price,
-                    description = dto.description,
-                    category = dto.category,
-                    image = dto.image,
-                    rate = dto.rating.rate,
-                    count = dto.rating.count
-                )
+    override fun getProducts(): Flow<List<Product>> {
+        return productDao.getProductsCount().map { count ->
+            if (count == 0) {
+                val productsFromApi = api.getProducts()
+                val entities = productsFromApi.map { dto ->
+                    ProductEntity(
+                        id = dto.id,
+                        title = dto.title,
+                        price = dto.price,
+                        description = dto.description,
+                        category = dto.category,
+                        image = dto.image,
+                        rate = dto.rating.rate,
+                        count = dto.rating.count
+                    )
+                }
+                productDao.insertProducts(entities)
             }
+        }.map {
+            val favoriteIds = favoriteDao.getAllFavoriteIds().toSet()
 
-            productDao.insertProducts(entities)
-        }
-
-        val favoriteIds = favoriteDao.getAllFavoriteIds().toSet()
-
-        return productDao.getAllProducts().map { entity ->
-            entity.toDomain(isFavorite = entity.id in favoriteIds)
+            productDao.getAllProducts().first().map { entity ->
+                entity.toDomain(isFavorite = entity.id in favoriteIds)
+            }
         }
     }
 
