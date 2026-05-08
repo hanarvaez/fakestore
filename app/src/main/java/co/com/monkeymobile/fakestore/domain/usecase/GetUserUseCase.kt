@@ -16,7 +16,7 @@ class GetUserUseCase @Inject constructor(
 ) {
 
     override suspend fun execute(parameters: GetUserUseCaseParams): GetUserUseCaseResult {
-        val user = repository.getUser(parameters.userId).getOrThrow()
+        val user = repository.getUser(parameters.userId)
         return GetUserUseCaseResult(user = user)
     }
 }

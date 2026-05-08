@@ -15,12 +15,11 @@ class UserRepositoryImpl @Inject constructor(
     private val userDao: UserDao
 ) : UserRepository {
 
-    override suspend fun getUser(userId: Int): Result<User> {
+    override suspend fun getUser(userId: Int): User {
         return try {
-            val user = api.getUser(userId).toDomain()
-            Result.success(user)
+            api.getUser(userId).toDomain()
         } catch (e: Exception) {
-            Result.failure(e)
+            throw Exception("Failed to get user: ${e.message}")
         }
     }
 
