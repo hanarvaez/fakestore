@@ -18,8 +18,14 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE username = :username AND password = :password LIMIT 1")
     suspend fun validateUser(username: String, password: String): UserEntity?
 
+    @Query("SELECT * FROM users WHERE id = :userId")
+    suspend fun getUserById(userId: Int): UserEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUsers(users: List<UserEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUser(user: UserEntity)
 
     @Query("DELETE FROM users")
     suspend fun deleteAllUsers()

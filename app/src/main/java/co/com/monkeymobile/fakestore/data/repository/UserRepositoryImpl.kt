@@ -16,8 +16,16 @@ class UserRepositoryImpl @Inject constructor(
 ) : UserRepository {
 
     override suspend fun getUser(userId: Int): User {
+        val localUser = userDao.getUserById(userId)
+
+        if (localUser != null) {
+            return localUser.toDomain()
+        }
+
         return try {
-            api.getUser(userId).toDomain()
+            val userDto = api.getUser(userId)
+            userDao.insertUser(userDto.toEntity())
+            userDto.toDomain()
         } catch (e: Exception) {
             throw Exception("Failed to get user: ${e.message}")
         }
