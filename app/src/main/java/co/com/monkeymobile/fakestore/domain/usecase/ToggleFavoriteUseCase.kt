@@ -11,11 +11,11 @@ import javax.inject.Inject
 class ToggleFavoriteUseCase @Inject constructor(
     private val repository: ProductRepository,
     @IoDispatcher val coroutineDispatcher: CoroutineDispatcher
-) : SuspendUseCase<ToggleFavoriteUseCaseParams, ToggleFavoriteUseCaseResult>(
+) : SuspendUseCase<ToggleFavoriteUseCaseParams, NoResult>(
     coroutineDispatcher
 ) {
 
-    override suspend fun execute(parameters: ToggleFavoriteUseCaseParams): ToggleFavoriteUseCaseResult {
+    override suspend fun execute(parameters: ToggleFavoriteUseCaseParams): NoResult {
         val product = parameters.product
 
         if (repository.isFavorite(product.id)) {
@@ -24,14 +24,10 @@ class ToggleFavoriteUseCase @Inject constructor(
             repository.addFavorite(product)
         }
 
-        return ToggleFavoriteUseCaseResult(isFavorite = !product.isFavorite)
+        return NoResult
     }
 }
 
 data class ToggleFavoriteUseCaseParams(
     val product: Product
-)
-
-data class ToggleFavoriteUseCaseResult(
-    val isFavorite: Boolean
 )
