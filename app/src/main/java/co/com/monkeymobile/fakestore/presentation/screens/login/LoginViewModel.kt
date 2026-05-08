@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,47 +19,38 @@ class LoginViewModel @Inject constructor(
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(LoginState())
-    val state: StateFlow<LoginState> = _state.asStateFlow()
+    private val _state = MutableStateFlow<LoginViewState>(LoginViewState.Initial)
+    val state: StateFlow<LoginViewState> = _state.asStateFlow()
 
     private val _effect = MutableSharedFlow<LoginEffect>()
     val effect = _effect.asSharedFlow()
 
-    fun handleIntent(intent: LoginIntent) {
-        when (intent) {
-            is LoginIntent.UpdateUsername -> updateUsername(intent.username)
-            is LoginIntent.UpdatePassword -> updatePassword(intent.password)
-            is LoginIntent.Login -> login()
+    fun handleEvent(event: LoginViewEvent) {
+        when (event) {
+            is LoginViewEvent.OnLoginPressed -> login(event.username, event.password)
+            is LoginViewEvent.OnNavigateToHome -> {
+                viewModelScope.launch {
+                    _effect.emit(LoginEffect.NavigateToHome)
+                }
+            }
         }
     }
 
-    private fun updateUsername(username: String) {
-        _state.update { it.copy(username = username, error = null) }
-    }
-
-    private fun updatePassword(password: String) {
-        _state.update { it.copy(password = password, error = null) }
-    }
-
-    private fun login() {
-        val currentState = _state.value
-
-        if (currentState.username.isBlank() || currentState.password.isBlank()) {
-            _state.update { it.copy(error = "Please enter username and password") }
+    private fun login(username: String, password: String) {
+        if (username.isBlank() || password.isBlank()) {
             return
         }
 
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            _state.value = LoginViewState.Loading
 
-            validateUserUseCase(currentState.username, currentState.password)
+            validateUserUseCase(username, password)
                 .onSuccess { user ->
                     sessionManager.setUserId(user.id)
-                    _state.update { it.copy(isLoading = false) }
+                    _state.value = LoginViewState.Content(user)
                     _effect.emit(LoginEffect.NavigateToHome)
                 }
                 .onFailure { exception ->
-                    _state.update { it.copy(isLoading = false, error = exception.message) }
                     _effect.emit(LoginEffect.ShowError(exception.message ?: "Login failed"))
                 }
         }
