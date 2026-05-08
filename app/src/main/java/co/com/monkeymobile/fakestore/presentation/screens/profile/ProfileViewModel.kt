@@ -2,6 +2,7 @@ package co.com.monkeymobile.fakestore.presentation.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.com.monkeymobile.fakestore.di.SessionManager
 import co.com.monkeymobile.fakestore.domain.usecase.GetFavoritesCountUseCase
 import co.com.monkeymobile.fakestore.domain.usecase.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val getUserUseCase: GetUserUseCase,
-    private val getFavoritesCountUseCase: GetFavoritesCountUseCase
+    private val getFavoritesCountUseCase: GetFavoritesCountUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
@@ -39,8 +41,9 @@ class ProfileViewModel @Inject constructor(
     private fun loadProfile() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            
-            getUserUseCase(8)
+
+            val userId = sessionManager.getUserId()
+            getUserUseCase(userId)
                 .onSuccess { user ->
                     _state.update { it.copy(isLoading = false, user = user) }
                 }
@@ -49,7 +52,7 @@ class ProfileViewModel @Inject constructor(
                     _effect.emit(ProfileEffect.ShowError(exception.message ?: "Unknown error"))
                 }
         }
-        
+
         viewModelScope.launch {
             getFavoritesCountUseCase().collect { count ->
                 _state.update { it.copy(favoritesCount = count) }

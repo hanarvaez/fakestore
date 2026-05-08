@@ -2,6 +2,7 @@ package co.com.monkeymobile.fakestore.presentation.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.com.monkeymobile.fakestore.di.SessionManager
 import co.com.monkeymobile.fakestore.domain.usecase.ValidateUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val validateUserUseCase: ValidateUserUseCase
+    private val validateUserUseCase: ValidateUserUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -52,7 +54,8 @@ class LoginViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
 
             validateUserUseCase(currentState.username, currentState.password)
-                .onSuccess {
+                .onSuccess { user ->
+                    sessionManager.setUserId(user.id)
                     _state.update { it.copy(isLoading = false) }
                     _effect.emit(LoginEffect.NavigateToHome)
                 }
