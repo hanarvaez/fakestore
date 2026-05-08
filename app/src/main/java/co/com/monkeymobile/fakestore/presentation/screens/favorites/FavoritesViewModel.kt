@@ -1,17 +1,11 @@
 package co.com.monkeymobile.fakestore.presentation.screens.favorites
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.usecase.GetFavoritesUseCase
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCase
+import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,39 +13,35 @@ import javax.inject.Inject
 class FavoritesViewModel @Inject constructor(
     private val getFavoritesUseCase: GetFavoritesUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase
-) : ViewModel() {
+) : BaseViewModel<FavoritesViewState, FavoritesViewEvent>(
+    initialState = FavoritesViewState.Initial
+) {
 
-    private val _state = MutableStateFlow(FavoritesState())
-    val state: StateFlow<FavoritesState> = _state.asStateFlow()
+    override fun dispatchViewEvent(event: FavoritesViewEvent) {
+        super.dispatchViewEvent(event)
 
-    private val _effect = MutableSharedFlow<FavoritesEffect>()
-    val effect = _effect.asSharedFlow()
-
-    init {
-        handleIntent(FavoritesIntent.LoadFavorites)
-    }
-
-    fun handleIntent(intent: FavoritesIntent) {
-        when (intent) {
-            is FavoritesIntent.LoadFavorites -> loadFavorites()
-            is FavoritesIntent.RemoveFavorite -> removeFavorite(intent.product)
-        }
-    }
-
-    private fun loadFavorites() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            
-            getFavoritesUseCase().collect { products ->
-                _state.update { it.copy(isLoading = false, products = products) }
+            when (event) {
+                is FavoritesViewEvent.LoadFavorites -> loadFavorites()
+                is FavoritesViewEvent.RemoveFavorite -> removeFavorite(event.product)
             }
         }
     }
 
-    private fun removeFavorite(product: Product) {
-        viewModelScope.launch {
-            toggleFavoriteUseCase(product)
-            loadFavorites()
+    private suspend fun loadFavorites() {
+        updateUIState(FavoritesViewState.Loading)
+
+        getFavoritesUseCase().collect { products ->
+            if (products.isEmpty()) {
+                updateUIState(FavoritesViewState.Empty)
+            } else {
+                updateUIState(FavoritesViewState.Content(products))
+            }
         }
+    }
+
+    private suspend fun removeFavorite(product: Product) {
+        toggleFavoriteUseCase(product)
+        loadFavorites()
     }
 }
