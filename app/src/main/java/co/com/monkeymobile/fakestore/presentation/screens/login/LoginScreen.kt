@@ -102,7 +102,7 @@ fun LoginScreen(
 
                     Button(
                         onClick = {
-                            viewModel.handleViewEvent(
+                            viewModel.dispatchViewEvent(
                                 LoginViewEvent.OnLoginPressed(
                                     username,
                                     password

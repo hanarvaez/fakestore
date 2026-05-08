@@ -21,7 +21,7 @@ abstract class BaseViewModel<State : ViewState, Event : ViewEvent>(
     private val _snackbarMessage = MutableSharedFlow<String>()
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
-    open fun handleViewEvent(event: Event) {
+    open fun dispatchViewEvent(event: Event) {
         Log.d("ViewEvent", event.name)
     }
 

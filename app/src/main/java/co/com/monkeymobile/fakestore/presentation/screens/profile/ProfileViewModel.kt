@@ -18,8 +18,8 @@ class ProfileViewModel @Inject constructor(
     initialState = ProfileViewState.Initial
 ) {
 
-    override fun handleViewEvent(event: ProfileViewEvent) {
-        super.handleViewEvent(event)
+    override fun dispatchViewEvent(event: ProfileViewEvent) {
+        super.dispatchViewEvent(event)
 
         viewModelScope.launch {
             when (event) {

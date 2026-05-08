@@ -83,7 +83,7 @@ fun ProfileScreen(
         ) {
             when (val currentState = state) {
                 is ProfileViewState.Initial -> {
-                    viewModel.handleViewEvent(ProfileViewEvent.LoadProfile)
+                    viewModel.dispatchViewEvent(ProfileViewEvent.LoadProfile)
                 }
 
                 is ProfileViewState.Loading -> {

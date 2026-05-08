@@ -72,6 +72,7 @@ fun FavoritesScreen(
                         ) { product ->
                             ProductCard(
                                 product = product,
+                                onCardClick = {},
                                 onFavoriteClick = {
                                     onProductClick(product)
                                     viewModel.handleIntent(FavoritesIntent.RemoveFavorite(product))

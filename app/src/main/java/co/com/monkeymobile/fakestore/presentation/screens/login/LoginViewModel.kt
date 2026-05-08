@@ -16,8 +16,8 @@ class LoginViewModel @Inject constructor(
     initialState = LoginViewState.Initial
 ) {
 
-    override fun handleViewEvent(event: LoginViewEvent) {
-        super.handleViewEvent(event)
+    override fun dispatchViewEvent(event: LoginViewEvent) {
+        super.dispatchViewEvent(event)
 
         viewModelScope.launch {
             when (event) {
