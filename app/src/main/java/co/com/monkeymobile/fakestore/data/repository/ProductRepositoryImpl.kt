@@ -9,7 +9,7 @@ import co.com.monkeymobile.fakestore.data.remote.api.FakeStoreApi
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,10 +22,10 @@ class ProductRepositoryImpl @Inject constructor(
 ) : ProductRepository {
 
     override fun getProducts(): Flow<List<Product>> {
-        return productDao.getProductsCount().map { count ->
-            if (count == 0) {
+        val productsFlow = productDao.getAllProducts().map { entities ->
+            entities.ifEmpty {
                 val productsFromApi = api.getProducts()
-                val entities = productsFromApi.map { dto ->
+                val entitiesMapped = productsFromApi.map { dto ->
                     ProductEntity(
                         id = dto.id,
                         title = dto.title,
@@ -37,12 +37,14 @@ class ProductRepositoryImpl @Inject constructor(
                         count = dto.rating.count
                     )
                 }
-                productDao.insertProducts(entities)
+                productDao.insertProducts(entitiesMapped)
+                entitiesMapped
             }
-        }.map {
-            val favoriteIds = favoriteDao.getAllFavoriteIds().toSet()
+        }
 
-            productDao.getAllProducts().first().map { entity ->
+        return productsFlow.combine(favoriteDao.getAllFavorites()) { products, favorites ->
+            val favoriteIds = favorites.map { it.id }.toSet()
+            products.map { entity ->
                 entity.toDomain(isFavorite = entity.id in favoriteIds)
             }
         }
