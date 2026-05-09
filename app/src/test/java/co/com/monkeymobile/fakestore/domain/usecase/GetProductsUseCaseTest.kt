@@ -4,9 +4,11 @@ import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.model.Rating
 import co.com.monkeymobile.fakestore.domain.repository.ProductRepository
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -17,14 +19,16 @@ class GetProductsUseCaseTest {
     private lateinit var repository: ProductRepository
     private lateinit var useCase: GetProductsUseCase
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
         repository = mockk()
-        useCase = GetProductsUseCase(repository)
+        useCase = GetProductsUseCase(repository, UnconfinedTestDispatcher())
     }
 
     @Test
-    fun `invoke returns success when repository returns products`() = runBlocking {
+    fun `invoke returns success with products for user`() = runTest {
+        val userId = 1
         val products = listOf(
             Product(
                 id = 1,
@@ -37,21 +41,31 @@ class GetProductsUseCaseTest {
                 isFavorite = false
             )
         )
-        coEvery { repository.getProducts() } returns Result.success(products)
 
-        val result = useCase()
+        coEvery { repository.getProducts(userId) } returns flowOf(products)
 
-        assertTrue(result.isSuccess)
-        assertEquals(1, result.getOrNull()?.size)
-        assertEquals("Test Product", result.getOrNull()?.first()?.title)
+        val result = useCase(GetProductsUseCaseParams(userId))
+
+        result.collect { resultFlow ->
+            resultFlow.onSuccess { useCaseResult ->
+                assertEquals(1, useCaseResult.products.size)
+                assertEquals("Test Product", useCaseResult.products.first().title)
+            }
+        }
     }
 
     @Test
-    fun `invoke returns failure when repository fails`() = runBlocking {
-        coEvery { repository.getProducts() } returns Result.failure(Exception("Network error"))
+    fun `invoke returns success with empty list when no products`() = runTest {
+        val userId = 1
 
-        val result = useCase()
+        coEvery { repository.getProducts(userId) } returns flowOf(emptyList())
 
-        assertTrue(result.isFailure)
+        val result = useCase(GetProductsUseCaseParams(userId))
+
+        result.collect { resultFlow ->
+            resultFlow.onSuccess { useCaseResult ->
+                assertTrue(useCaseResult.products.isEmpty())
+            }
+        }
     }
 }

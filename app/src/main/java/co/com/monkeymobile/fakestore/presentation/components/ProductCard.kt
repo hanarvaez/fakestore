@@ -31,12 +31,14 @@ import coil.compose.AsyncImage
 @Composable
 fun ProductCard(
     product: Product,
+    onCardClick: (Product) -> Unit,
     onFavoriteClick: (Product) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        onClick = { onCardClick(product) }
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -50,9 +52,9 @@ fun ProductCard(
                     .clip(MaterialTheme.shapes.small),
                 contentScale = ContentScale.Crop
             )
-            
+
             Spacer(modifier = Modifier.width(12.dp))
-            
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -63,13 +65,13 @@ fun ProductCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                
+
                 Text(
                     text = product.category,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -90,14 +92,14 @@ fun ProductCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 Text(
                     text = "$${String.format("%.2f", product.price)}",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            
+
             IconButton(onClick = { onFavoriteClick(product) }) {
                 Icon(
                     imageVector = if (product.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,

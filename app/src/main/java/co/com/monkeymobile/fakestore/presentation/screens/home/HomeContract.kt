@@ -1,18 +1,37 @@
 package co.com.monkeymobile.fakestore.presentation.screens.home
 
 import co.com.monkeymobile.fakestore.domain.model.Product
+import co.com.monkeymobile.fakestore.presentation.screens.ViewEvent
+import co.com.monkeymobile.fakestore.presentation.screens.ViewState
 
-data class HomeState(
-    val isLoading: Boolean = true,
-    val products: List<Product> = emptyList(),
-    val error: String? = null
-)
+sealed class HomeViewState : ViewState {
 
-sealed class HomeIntent {
-    data object LoadProducts : HomeIntent()
-    data class ToggleFavorite(val product: Product) : HomeIntent()
+    data object Initial : HomeViewState() {
+        override val name: String = "HomeViewState.Initial"
+    }
+
+    data object Loading : HomeViewState() {
+        override val name: String = "HomeViewState.Loading"
+    }
+
+    data class Content(
+        val products: List<Product>
+    ) : HomeViewState() {
+        override val name: String = "HomeViewState.Content"
+    }
+
+    data class Error(val message: String) : HomeViewState() {
+        override val name: String = "HomeViewState.Error"
+    }
 }
 
-sealed class HomeEffect {
-    data class ShowError(val message: String) : HomeEffect()
+sealed class HomeViewEvent : ViewEvent {
+
+    data object LoadProducts : HomeViewEvent() {
+        override val name: String = "HomeViewEvent.LoadProducts"
+    }
+
+    data class ToggleFavorite(val product: Product) : HomeViewEvent() {
+        override val name: String = "HomeViewEvent.ToggleFavorite"
+    }
 }

@@ -1,12 +1,15 @@
 package co.com.monkeymobile.fakestore.data.repository
 
 import co.com.monkeymobile.fakestore.data.local.dao.FavoriteDao
+import co.com.monkeymobile.fakestore.data.local.dao.ProductDao
+import co.com.monkeymobile.fakestore.data.local.entity.FavoriteEntity
+import co.com.monkeymobile.fakestore.data.local.entity.ProductEntity
 import co.com.monkeymobile.fakestore.data.mapper.toDomain
-import co.com.monkeymobile.fakestore.data.mapper.toEntity
 import co.com.monkeymobile.fakestore.data.remote.api.FakeStoreApi
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,40 +17,58 @@ import javax.inject.Singleton
 @Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val api: FakeStoreApi,
-    private val favoriteDao: FavoriteDao
+    private val favoriteDao: FavoriteDao,
+    private val productDao: ProductDao
 ) : ProductRepository {
 
-    override suspend fun getProducts(): Result<List<Product>> {
-        return try {
-            val favoriteIds = favoriteDao.getAllFavoriteIds().toSet()
-            val products = api.getProducts().map { dto ->
-                dto.toDomain(isFavorite = dto.id in favoriteIds)
+    override fun getProducts(userId: Int): Flow<List<Product>> {
+        val productsFlow = productDao.getAllProducts().map { entities ->
+            entities.ifEmpty {
+                val productsFromApi = api.getProducts()
+                val entitiesMapped = productsFromApi.map { dto ->
+                    ProductEntity(
+                        id = dto.id,
+                        title = dto.title,
+                        price = dto.price,
+                        description = dto.description,
+                        category = dto.category,
+                        image = dto.image,
+                        rate = dto.rating.rate,
+                        count = dto.rating.count
+                    )
+                }
+                productDao.insertProducts(entitiesMapped)
+                entitiesMapped
             }
-            Result.success(products)
-        } catch (e: Exception) {
-            Result.failure(e)
+        }
+
+        return productsFlow.combine(favoriteDao.getFavoriteProductIds(userId)) { products, favoriteIds ->
+            products.map { entity ->
+                entity.toDomain(isFavorite = entity.id in favoriteIds)
+            }
         }
     }
 
-    override fun getFavorites(): Flow<List<Product>> {
-        return favoriteDao.getAllFavorites().map { entities ->
-            entities.map { it.toDomain() }
-        }
+    override fun getFavorites(userId: Int): Flow<List<Product>> {
+        return productDao.getAllProducts()
+            .combine(favoriteDao.getFavoriteProductIds(userId)) { products, favoriteIds ->
+                products.filter { it.id in favoriteIds }.map { it.toDomain(isFavorite = true) }
+            }
     }
 
-    override fun getFavoritesCount(): Flow<Int> {
-        return favoriteDao.getFavoritesCount()
+    override fun getFavoritesCount(userId: Int): Flow<Int> {
+        return favoriteDao.getFavoritesCount(userId)
     }
 
-    override suspend fun addFavorite(product: Product) {
-        favoriteDao.addFavorite(product.toEntity())
+    override suspend fun addFavorite(product: Product, userId: Int) {
+        favoriteDao.addFavorite(FavoriteEntity(productId = product.id, userId = userId))
     }
 
-    override suspend fun removeFavorite(productId: Int) {
-        favoriteDao.removeFavoriteById(productId)
+    override suspend fun removeFavorite(productId: Int, userId: Int) {
+        favoriteDao.removeFavoriteById(productId, userId)
     }
 
-    override suspend fun isFavorite(productId: Int): Boolean {
-        return favoriteDao.isFavorite(productId)
+    override suspend fun isFavorite(productId: Int, userId: Int): Boolean {
+        return favoriteDao.isFavorite(productId, userId)
     }
 }

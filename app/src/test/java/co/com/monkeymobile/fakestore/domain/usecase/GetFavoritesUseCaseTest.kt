@@ -3,32 +3,31 @@ package co.com.monkeymobile.fakestore.domain.usecase
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.model.Rating
 import co.com.monkeymobile.fakestore.domain.repository.ProductRepository
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.Mockito.doReturn
 
-@RunWith(MockitoJUnitRunner::class)
 class GetFavoritesUseCaseTest {
 
-    @Mock
     private lateinit var repository: ProductRepository
-
     private lateinit var useCase: GetFavoritesUseCase
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
-        useCase = GetFavoritesUseCase(repository)
+        repository = mockk()
+        useCase = GetFavoritesUseCase(repository, UnconfinedTestDispatcher())
     }
 
     @Test
-    fun `invoke returns flow of favorites`() = runBlocking {
+    fun `invoke returns flow of favorites for user`() = runTest {
+        val userId = 1
         val products = listOf(
             Product(
                 id = 1,
@@ -41,25 +40,30 @@ class GetFavoritesUseCaseTest {
                 isFavorite = true
             )
         )
-        doReturn(flowOf(products)).`when`(repository).getFavorites()
 
-        val result = useCase()
+        coEvery { repository.getFavorites(userId) } returns flowOf(products)
 
-        result.collect { collected ->
-            assertEquals(1, collected.size)
-            assertEquals("Favorite Product", collected.first().title)
+        val result = useCase(GetFavoritesUseCaseParams(userId))
+
+        result.collect { resultFlow ->
+            resultFlow.onSuccess { useCaseResult ->
+                assertEquals(1, useCaseResult.products.size)
+                assertEquals("Favorite Product", useCaseResult.products.first().title)
+            }
         }
     }
 
     @Test
-    fun `invoke returns empty when no favorites`() = runBlocking {
-        val emptyList = emptyList<Product>()
-        doReturn(flowOf(emptyList)).`when`(repository).getFavorites()
+    fun `invoke returns empty when user has no favorites`() = runTest {
+        val userId = 1
+        coEvery { repository.getFavorites(userId) } returns flowOf(emptyList())
 
-        val result = useCase()
+        val result = useCase(GetFavoritesUseCaseParams(userId))
 
-        result.collect { collected ->
-            assertTrue(collected.isEmpty())
+        result.collect { resultFlow ->
+            resultFlow.onSuccess { useCaseResult ->
+                assertEquals(0, useCaseResult.products.size)
+            }
         }
     }
 }

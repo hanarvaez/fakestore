@@ -1,6 +1,8 @@
 package co.com.monkeymobile.fakestore.data.mapper
 
 import co.com.monkeymobile.fakestore.data.local.entity.FavoriteEntity
+import co.com.monkeymobile.fakestore.data.local.entity.ProductEntity
+import co.com.monkeymobile.fakestore.data.local.entity.UserEntity
 import co.com.monkeymobile.fakestore.data.remote.dto.ProductDto
 import co.com.monkeymobile.fakestore.data.remote.dto.UserDto
 import co.com.monkeymobile.fakestore.domain.model.Name
@@ -19,18 +21,7 @@ fun ProductDto.toDomain(isFavorite: Boolean = false) = Product(
     isFavorite = isFavorite
 )
 
-fun Product.toEntity() = FavoriteEntity(
-    id = id,
-    title = title,
-    price = price,
-    description = description,
-    category = category,
-    image = image,
-    rate = rating.rate,
-    count = rating.count
-)
-
-fun FavoriteEntity.toDomain() = Product(
+fun ProductEntity.toDomain(isFavorite: Boolean = false) = Product(
     id = id,
     title = title,
     price = price,
@@ -38,7 +29,7 @@ fun FavoriteEntity.toDomain() = Product(
     category = category,
     image = image,
     rating = Rating(rate, count),
-    isFavorite = true
+    isFavorite = isFavorite
 )
 
 fun UserDto.toDomain() = User(
@@ -47,6 +38,27 @@ fun UserDto.toDomain() = User(
     username = username,
     password = password,
     name = Name(name.firstname, name.lastname),
+    phone = phone,
+    v = v
+)
+
+fun UserDto.toEntity() = UserEntity(
+    id = id,
+    email = email,
+    username = username,
+    password = password,
+    firstname = name.firstname,
+    lastname = name.lastname,
+    phone = phone,
+    v = v
+)
+
+fun UserEntity.toDomain() = User(
+    id = id,
+    email = email,
+    username = username,
+    password = password,
+    name = Name(firstname, lastname),
     phone = phone,
     v = v
 )

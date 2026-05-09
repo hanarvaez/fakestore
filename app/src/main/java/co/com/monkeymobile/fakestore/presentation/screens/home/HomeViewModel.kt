@@ -1,62 +1,53 @@
 package co.com.monkeymobile.fakestore.presentation.screens.home
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.com.monkeymobile.fakestore.di.SessionManager
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.usecase.GetProductsUseCase
+import co.com.monkeymobile.fakestore.domain.usecase.GetProductsUseCaseParams
 import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCase
+import co.com.monkeymobile.fakestore.domain.usecase.ToggleFavoriteUseCaseParams
+import co.com.monkeymobile.fakestore.presentation.screens.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
-    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
-) : ViewModel() {
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val sessionManager: SessionManager
+) : BaseViewModel<HomeViewState, HomeViewEvent>(
+    initialState = HomeViewState.Initial
+) {
 
-    private val _state = MutableStateFlow(HomeState())
-    val state: StateFlow<HomeState> = _state.asStateFlow()
+    override fun dispatchViewEvent(event: HomeViewEvent) {
+        super.dispatchViewEvent(event)
 
-    private val _effect = MutableSharedFlow<HomeEffect>()
-    val effect = _effect.asSharedFlow()
-
-    init {
-        handleIntent(HomeIntent.LoadProducts)
-    }
-
-    fun handleIntent(intent: HomeIntent) {
-        when (intent) {
-            is HomeIntent.LoadProducts -> loadProducts()
-            is HomeIntent.ToggleFavorite -> toggleFavorite(intent.product)
-        }
-    }
-
-    private fun loadProducts() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            
-            getProductsUseCase()
-                .onSuccess { products ->
-                    _state.update { it.copy(isLoading = false, products = products) }
-                }
-                .onFailure { exception ->
-                    _state.update { it.copy(isLoading = false, error = exception.message) }
-                    _effect.emit(HomeEffect.ShowError(exception.message ?: "Unknown error"))
-                }
+            when (event) {
+                is HomeViewEvent.LoadProducts -> loadProducts()
+                is HomeViewEvent.ToggleFavorite -> toggleFavorite(event.product)
+            }
         }
     }
 
-    private fun toggleFavorite(product: Product) {
-        viewModelScope.launch {
-            toggleFavoriteUseCase(product)
-            loadProducts()
+    private suspend fun loadProducts() {
+        updateUIState(HomeViewState.Loading)
+
+        val userId = sessionManager.getUserId()
+        getProductsUseCase(GetProductsUseCaseParams(userId)).collect { result ->
+            result.onSuccess { useCaseResult ->
+                updateUIState(HomeViewState.Content(useCaseResult.products))
+            }.onFailure { exception ->
+                updateUIState(HomeViewState.Error(exception.message ?: "Unknown error"))
+                showMessage(exception.message ?: "Unknown error")
+            }
         }
+    }
+
+    private suspend fun toggleFavorite(product: Product) {
+        val userId = sessionManager.getUserId()
+        toggleFavoriteUseCase(ToggleFavoriteUseCaseParams(product, userId))
     }
 }

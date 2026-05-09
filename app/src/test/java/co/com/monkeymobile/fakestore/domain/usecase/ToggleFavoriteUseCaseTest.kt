@@ -3,46 +3,49 @@ package co.com.monkeymobile.fakestore.domain.usecase
 import co.com.monkeymobile.fakestore.domain.model.Product
 import co.com.monkeymobile.fakestore.domain.model.Rating
 import co.com.monkeymobile.fakestore.domain.repository.ProductRepository
-import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.Mockito.doReturn
 
-@RunWith(MockitoJUnitRunner::class)
 class ToggleFavoriteUseCaseTest {
 
-    @Mock
     private lateinit var repository: ProductRepository
-
     private lateinit var useCase: ToggleFavoriteUseCase
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setup() {
-        useCase = ToggleFavoriteUseCase(repository)
+        repository = mockk(relaxed = true)
+        useCase = ToggleFavoriteUseCase(repository, UnconfinedTestDispatcher())
     }
 
     @Test
-    fun `invoke adds favorite when product is not favorite`() = runBlocking {
+    fun `invoke adds favorite when product is not favorite`() = runTest {
+        val userId = 1
         val product = createProduct(1, false)
-        doReturn(false).`when`(repository).isFavorite(1)
 
-        useCase(product)
+        coEvery { repository.isFavorite(1, userId) } returns false
 
-        // Verify addFavorite was called (not implemented in mock verification)
+        useCase(ToggleFavoriteUseCaseParams(product, userId))
+
+        coVerify { repository.addFavorite(product, userId) }
     }
 
     @Test
-    fun `invoke removes favorite when product is already favorite`() = runBlocking {
+    fun `invoke removes favorite when product is already favorite`() = runTest {
+        val userId = 1
         val product = createProduct(1, true)
-        doReturn(true).`when`(repository).isFavorite(1)
 
-        useCase(product)
+        coEvery { repository.isFavorite(1, userId) } returns true
 
-        // Verify removeFavorite was called (not implemented in mock verification)
+        useCase(ToggleFavoriteUseCaseParams(product, userId))
+
+        coVerify { repository.removeFavorite(1, userId) }
     }
 
     private fun createProduct(id: Int, isFavorite: Boolean) = Product(
