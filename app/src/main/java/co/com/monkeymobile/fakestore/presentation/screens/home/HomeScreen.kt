@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -57,7 +58,12 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Products") },
+                title = {
+                    Text(
+                        text = "Products",
+                        Modifier.testTag("products_title")
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -94,7 +100,13 @@ fun HomeScreen(
                             ProductCard(
                                 product = product,
                                 onCardClick = { onProductClick(product) },
-                                onFavoriteClick = { viewModel.dispatchViewEvent(HomeViewEvent.ToggleFavorite(product)) }
+                                onFavoriteClick = {
+                                    viewModel.dispatchViewEvent(
+                                        HomeViewEvent.ToggleFavorite(
+                                            product
+                                        )
+                                    )
+                                }
                             )
                         }
                     }

@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -109,7 +110,9 @@ fun LoginScreen(
                                 )
                             )
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("login_button")
                     ) {
                         Text("Login")
                     }
@@ -120,7 +123,9 @@ fun LoginScreen(
                 }
 
                 is LoginViewState.Content -> {
-                    onNavigateToHome()
+                    LaunchedEffect(Unit) {
+                        onNavigateToHome()
+                    }
                 }
             }
         }
